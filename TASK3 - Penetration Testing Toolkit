@@ -1,0 +1,104 @@
+#Penetration Testing Toolkit in Python
+
+import socket
+import requests
+from bs4 import BeautifulSoup
+from urllib.parse import urlparse, quote
+
+# PORT SCANNER 
+def port_scanner(target, ports=[21, 22, 23, 80, 443, 8080]):
+    print(f"\n[🔍] Scanning ports on {target}...")
+    for port in ports:
+        try:
+            s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            s.settimeout(0.5)
+            result = s.connect_ex((target, port))
+            if result == 0:
+                print(f"[OPEN] Port {port} is open")
+            s.close()
+        except Exception as e:
+            print(f"[ERROR] {e}")
+
+#BANNER GRABBER 
+def banner_grabber(target, port):
+    try:
+        s = socket.socket()
+        s.settimeout(2)
+        s.connect((target, port))
+        banner = s.recv(1024).decode().strip()
+        print(f"[INFO] Banner for {target}:{port} ➜ {banner}")
+        s.close()
+    except:
+        print(f"[WARN] Could not grab banner from {target}:{port}")
+
+# BRUTE FORCER (Demo with HTTP Basic Auth) 
+def basic_brute_force(url, usernames, passwords):
+    print(f"\n[🔐] Starting brute-force on {url}")
+    for username in usernames:
+        for password in passwords:
+            response = requests.get(url, auth=(username, password))
+            if response.status_code == 200:
+                print(f"[SUCCESS] Username: {username} | Password: {password}")
+                return
+    print("[FAIL] No valid credentials found.")
+
+# SCANNER 
+def sql_injection_scanner(url):
+    print(f"\n[💉] Testing SQL Injection on {url}")
+    payload = "' OR 1=1 --"
+    test_url = url + payload
+    r = requests.get(test_url)
+    if "mysql" in r.text.lower() or "error" in r.text.lower():
+        print(f"[🚨] SQL Injection vulnerability found using payload: {payload}")
+    else:
+        print("[✅] No SQL Injection vulnerability found.")
+
+#XSS SCANNER
+def xss_scanner(url):
+    print(f"\n[⚠️] Testing XSS on {url}")
+    payload = "<script>alert('XSS')</script>"
+    r = requests.get(url + payload)
+    if payload in r.text:
+        print("[🚨] XSS Vulnerability Detected!")
+    else:
+        print("[✅] No XSS detected.")
+
+# INTERFACE
+def main():
+    print("🛡️ PENETRATION TESTING TOOLKIT 🛡️\n")
+    print("Choose a module to run:")
+    print("1. Port Scanner")
+    print("2. Banner Grabber")
+    print("3. Brute Forcer (HTTP Basic Auth)")
+    print("4. SQL Injection Scanner")
+    print("5. XSS Scanner")
+    
+    choice = input("\nEnter your choice (1-5): ")
+
+    if choice == '1':
+        target = input("Enter target IP or domain (e.g., scanme.nmap.org): ")
+        port_scanner(target)
+
+    elif choice == '2':
+        target = input("Enter target IP: ")
+        port = int(input("Enter port (e.g., 21): "))
+        banner_grabber(target, port)
+
+    elif choice == '3':
+        url = input("Enter URL with Basic Auth (e.g., https://httpbin.org/basic-auth/user/pass): ")
+        usernames = ["admin", "user", "test"]
+        passwords = ["admin", "1234", "password", "pass"]
+        basic_brute_force(url, usernames, passwords)
+
+    elif choice == '4':
+        url = input("Enter vulnerable URL (e.g., http://testphp.vulnweb.com/artists.php?artist=1): ")
+        sql_injection_scanner(url)
+
+    elif choice == '5':
+        url = input("Enter URL to test XSS (e.g., http://example.com/search?q=): ")
+        xss_scanner(url)
+
+    else:
+        print("Invalid choice!")
+
+main()
