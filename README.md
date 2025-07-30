@@ -35,10 +35,14 @@ Toolkit Modules:
 - colorama
 
 Sample Output:
+
 Starting Web Vulnerability Scan...
 Testing SQL Injection on: http://testphp.vulnweb.com/artists.php?artist=1
+
 SQL Injection Vulnerability Detected with payload: ' OR 1=1 --
+
  Testing XSS on: http://testphp.vulnweb.com/artists.php?artist=1
+ 
 ✅ No XSS Vulnerability Detected.
 ✅ Scan Complete.
 
